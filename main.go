@@ -1,24 +1,27 @@
 package main
 
 import (
-	"log"
+	"fmt"
 	"net/http"
+	"text/template"
 
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/gorilla/mux"
 )
 
 func main() {
-	// Create a new router
-	r := mux.NewRouter()
+	//RegisterRoute()
+	var tmpl, _ = template.ParseGlob("views/*")
+	RegisterWebRoute(tmpl)
 
-	// Define your HTTP routes using the router
-	r.HandleFunc("/user", api.createUserHandler).Methods("POST")
-	r.HandleFunc("/user/{id}", api.getUserHandler).Methods("GET")
-	r.HandleFunc("/user/{id}", api.updateUserHandler).Methods("PUT")
-	r.HandleFunc("/user/{id}", api.deleteUserHandler).Methods("DELETE")
+	http.Handle("/static/",
+		http.StripPrefix("/static/",
+			http.FileServer(http.Dir("assets"))))
 
-	// Start the HTTP server on port 8090
-	log.Println("Server listening on :8090")
-	log.Fatal(http.ListenAndServe(":8090", r))
+	var address = "localhost:8090"
+	fmt.Printf("server started at %s\n", address)
+	err := http.ListenAndServe(address, nil)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
 }

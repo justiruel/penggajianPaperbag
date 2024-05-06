@@ -8,10 +8,12 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/justiruel/penggajianPaperbag/config"
+	"github.com/justiruel/penggajianPaperbag/model/user"
 )
 
-func updateUserHandler(w http.ResponseWriter, r *http.Request) {
-	db, err := sql.Open(dbDriver, dbUser+":"+dbPass+"@/"+dbName)
+func UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
+	db, err := sql.Open(config.DbDriver, config.DbUser+":"+config.DbPass+"@/"+config.DbName)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -22,26 +24,17 @@ func updateUserHandler(w http.ResponseWriter, r *http.Request) {
 	idStr := vars["id"]
 
 	// Convert 'id' to an integer
-	userID, err := strconv.Atoi(idStr)
+	userID, _ := strconv.Atoi(idStr)
 
-	var user User
-	err = json.NewDecoder(r.Body).Decode(&user)
+	var usr user.User
+	err = json.NewDecoder(r.Body).Decode(&usr)
 
 	// Call the GetUser function to fetch the user data from the database
-	UpdateUser(db, userID, user.Name, user.Email)
+	user.UpdateUser(db, userID, usr.Name, usr.Email)
 	if err != nil {
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
 	}
 
 	fmt.Fprintln(w, "User updated successfully")
-}
-
-func UpdateUser(db *sql.DB, id int, name, email string) error {
-	query := "UPDATE users SET name = ?, email = ? WHERE id = ?"
-	_, err := db.Exec(query, name, email, id)
-	if err != nil {
-		return err
-	}
-	return nil
 }
